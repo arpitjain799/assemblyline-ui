@@ -12,6 +12,10 @@ resources:
       image: redis
       ports:
         - 6379:6379
+    - container: rabbit
+      image: rabbitmq:3.9
+      ports:
+        - 5672:5672
     - container: elasticsearch
       image: cccs/elasticsearch:7.16.1
       env:
@@ -51,6 +55,7 @@ jobs:
       elasticsearch: elasticsearch
       redis: redis
       minio: minio
+      rabbit: rabbit
 
     steps:
       - task: UsePythonVersion@0
