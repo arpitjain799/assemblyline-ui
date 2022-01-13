@@ -9,6 +9,8 @@ from assemblyline.remote.datatypes.hash import Hash
 from assemblyline.remote.datatypes.queues.comms import CommsQueue
 from assemblyline.remote.datatypes.set import ExpiringSet
 from assemblyline.remote.datatypes.user_quota_tracker import UserQuotaTracker
+from assemblyline.remote.queues.connection import RabbitManager
+from assemblyline_core.ingester.ingester import connect_ingest_queue
 from assemblyline_ui.helper.discover import get_apps_list
 
 config = forge.get_config()
@@ -79,6 +81,15 @@ def get_signup_queue(key):
                        host=config.core.redis.nonpersistent.host,
                        port=config.core.redis.nonpersistent.port,
                        ttl=60 * 15)
+
+
+@functools.cache
+def get_rabbit_manager():
+    manager = RabbitManager(config.core.rabbit_mq)
+    manager.start()
+    manager.setup_queue('ingest', connect_ingest_queue).wait()
+    LOGGER.info(f'Ingest queue ready {manager.queues}')
+    return manager
 
 
 # End of Configuration

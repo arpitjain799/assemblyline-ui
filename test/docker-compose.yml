@@ -90,3 +90,8 @@ services:
     ports:
       - "9000:9000"
     command: server /data
+
+  rabbit:
+    image: rabbitmq:3.9
+    ports:
+      - "5672:5672"

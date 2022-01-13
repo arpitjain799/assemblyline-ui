@@ -8,12 +8,17 @@ core:
       hosts: [elasticsearch]
     redis:
       host: redis
+      port: 6379
   redis:
     nonpersistent:
       host: redis
+      port: 6379
     persistent:
       host: redis
       port: 6379
+  rabbit_mq:
+    host: rabbit
+    port: 5672
 
 datastore:
   hosts: [elasticsearch]
@@ -26,6 +31,7 @@ logging:
   log_to_console: true
   log_to_file: false
   log_to_syslog: false
+  log_as_json: false
 
 ui:
   enforce_quota: false

@@ -9,7 +9,7 @@ from assemblyline.common.codec import decode_file
 from assemblyline.common.dict_utils import flatten
 from assemblyline.common.str_utils import safe_str
 from assemblyline_ui.api.base import api_login, make_api_response, make_subapi_blueprint
-from assemblyline_ui.config import CLASSIFICATION, TEMP_SUBMIT_DIR, STORAGE, config, FILESTORE
+from assemblyline_ui.config import CLASSIFICATION, TEMP_SUBMIT_DIR, STORAGE, config, FILESTORE, get_rabbit_manager
 from assemblyline_ui.helper.service import ui_to_submission_params
 from assemblyline_ui.helper.submission import safe_download, FileTooBigException, InvalidUrlException, \
     ForbiddenLocation, submission_received
@@ -24,10 +24,6 @@ SUB_API = 'ingest'
 ingest_api = make_subapi_blueprint(SUB_API, api_version=4)
 ingest_api._doc = "Ingest files for large volume processing"
 
-ingest = NamedQueue(
-    "m-ingest",
-    host=config.core.redis.persistent.host,
-    port=config.core.redis.persistent.port)
 MAX_SIZE = config.submission.max_file_size
 
 
@@ -368,8 +364,9 @@ def ingest_single_file(**kwargs):
             return make_api_response({}, err=str(e), status_code=400)
 
         # Send submission object for processing
-        ingest.push(submission_obj.as_primitives())
+        task_ingested = get_rabbit_manager().publish('ingest', submission_obj.as_primitives())
         submission_received(submission_obj)
+        task_ingested.wait()
 
         return make_api_response({"ingest_id": ingest_id})
 
